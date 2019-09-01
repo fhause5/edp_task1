@@ -101,7 +101,7 @@ spec:
       volumes:
         - name: postgredb
           persistentVolumeClaim:
-            claimName: postgres-pv-claim
+            claimName: pvc-nfs-pv1    # We have created it before in the /nfs
 
 ---
 apiVersion: v1
