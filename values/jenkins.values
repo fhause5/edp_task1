@@ -1,0 +1,284 @@
+clusterZone: "cluster.local"
+
+master:
+  # Used for label app.kubernetes.io/component
+  componentName: "jenkins-master"
+  image: "jenkins/jenkins"
+  tag: "lts"
+  imagePullPolicy: "Always"
+  imagePullSecretName:
+  # Optionally configure lifetime for master-container
+  lifecycle:
+  #  postStart:
+  #    exec:
+  #      command:
+  #      - "uname"
+  #      - "-a"
+  numExecutors: 0
+  # configAutoReload requires UseSecurity is set to true:
+  useSecurity: true
+  # Allows to configure different SecurityRealm using Jenkins XML
+  securityRealm: |-
+    <securityRealm class="hudson.security.LegacySecurityRealm"/>
+  # Allows to configure different AuthorizationStrategy using Jenkins XML
+  authorizationStrategy: |-
+     <authorizationStrategy class="hudson.security.FullControlOnceLoggedInAuthorizationStrategy">
+       <denyAnonymousReadAccess>true</denyAnonymousReadAccess>
+     </authorizationStrategy>
+  hostNetworking: false
+  adminUser: "admin"
+  adminPassword: "admin"
+  rollingUpdate: {}
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "4096Mi"
+  usePodSecurityContext: true
+  servicePort: 8080
+  targetPort: 8080
+  serviceType: NodePort
+  nodePort: 32333
+  serviceAnnotations: {}
+  deploymentLabels: {}
+  serviceLabels: {}
+  podLabels: {}
+  healthProbes: true
+  healthProbesLivenessTimeout: 5
+  healthProbesReadinessTimeout: 5
+  healthProbeLivenessPeriodSeconds: 10
+  healthProbeReadinessPeriodSeconds: 10
+  healthProbeLivenessFailureThreshold: 5
+  healthProbeReadinessFailureThreshold: 3
+  healthProbeLivenessInitialDelay: 90
+  healthProbeReadinessInitialDelay: 60
+  slaveListenerPort: 50000
+  slaveHostPort:
+  disabledAgentProtocols:
+    - JNLP-connect
+    - JNLP2-connect
+  csrf:
+    defaultCrumbIssuer:
+      enabled: true
+      proxyCompatability: true
+  cli: false
+  slaveListenerServiceType: "ClusterIP"
+  slaveListenerServiceAnnotations: {}
+  slaveKubernetesNamespace:
+
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0
+  extraPorts:
+
+  installPlugins:
+    - kubernetes:1.16.0
+    - workflow-job:2.32
+    - workflow-aggregator:2.6
+    - credentials-binding:1.19
+    - git:3.10.0
+
+  enableRawHtmlMarkupFormatter: false
+  scriptApproval:
+  initScripts:
+  jobs:
+
+  JCasC:
+    enabled: false
+    pluginVersion: "1.21"
+    # it's only used when plugin version is <=1.18 for later version the
+    # configuration as code support plugin is no longer needed
+    supportPluginVersion: "1.18"
+    configScripts:
+      welcome-message: |
+        jenkins:
+          systemMessage: Welcome to our CI\CD server.  This Jenkins is configured and managed 'as code'.
+
+  # Optionally specify additional init-containers
+  customInitContainers: []
+
+  sidecars:
+    configAutoReload:
+      enabled: false
+      image: shadwell/k8s-sidecar:0.0.2
+      imagePullPolicy: IfNotPresent
+      resources:
+      sshTcpPort: 1044
+      # folder in the pod that should hold the collected dashboards:
+      folder: "/var/jenkins_home/casc_configs"
+
+    # Allows you to inject additional/other sidecars
+    other:
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+
+  # The below two configuration-related values are deprecated and replaced by Jenkins Configuration as Code (see above
+  # JCasC key).  They will be deleted in an upcoming version.
+  customConfigMap: false
+  overwriteConfig: false
+
+  overwriteJobs: false
+
+  ingress:
+    enabled: false
+    # For Kubernetes v1.14+, use 'networking.k8s.io/v1beta1'
+    apiVersion: "extensions/v1beta1"
+    labels: {}
+    annotations: {}
+    hostName:
+    tls:
+
+  # Openshift route
+  route:
+    enabled: false
+    labels: {}
+    annotations: {}
+    # path: "/jenkins"
+
+  additionalConfig: {}
+
+  hostAliases: []
+
+  # Expose Prometheus metrics
+  prometheus:
+    # If enabled, add the prometheus plugin to the list of plugins to install
+    # https://plugins.jenkins.io/prometheus
+    enabled: false
+    # Additional labels to add to the ServiceMonitor object
+    serviceMonitorAdditionalLabels: {}
+    scrapeInterval: 60s
+    # This is the default endpoint used by the prometheus plugin
+    scrapeEndpoint: /prometheus
+    # Additional labels to add to the PrometheusRule object
+    alertingRulesAdditionalLabels: {}
+    alertingrules: []
+
+agent:
+  enabled: true
+  image: "jenkins/jnlp-slave"
+  tag: "3.27-1"
+  customJenkinsLabels: []
+  # name of the secret to be used for image pulling
+  imagePullSecretName:
+  componentName: "jenkins-slave"
+  privileged: false
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  # You may want to change this to true while testing a new image
+  alwaysPullImage: false
+  # Controls how slave pods are retained after the Jenkins build completes
+  # Possible values: Always, Never, OnFailure
+  podRetention: "Never"
+  envVars:
+  # - name: PATH
+  #   value: /usr/local/bin
+  volumes:
+  nodeSelector: {}
+  # Key Value selectors. Ex:
+  # jenkins-agent: v1
+
+  # Executed command when side container gets started
+  command:
+  args:
+  # Side container name
+  sideContainerName: "jnlp"
+  # Doesn't allocate pseudo TTY by default
+  TTYEnabled: false
+  # Max number of spawned agent
+  containerCap: 10
+  # Pod name
+  podName: "default"
+  # Allows the Pod to remain active for reuse until the configured number of
+  # minutes has passed since the last step was executed on it.
+  idleMinutes: 0
+  # Raw yaml template for the Pod. For example this allows usage of toleration for agent pods.
+  # https://github.com/jenkinsci/kubernetes-plugin#using-yaml-to-define-pod-templates
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  yamlTemplate:
+
+persistence:
+  enabled: true
+  existingClaim:
+  storageClass: "managed-nfs-storage"
+  annotations: {}
+  accessMode: "ReadWriteOnce"
+  size: "3Gi"
+  volumes:
+  #  - name: nothing
+  #    emptyDir: {}
+  mounts:
+
+networkPolicy:
+  # Enable creation of NetworkPolicy resources.
+  enabled: false
+  apiVersion: networking.k8s.io/v1
+
+## Install Default RBAC roles and bindings
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  # The name of the service account is autogenerated by default
+  name:
+  annotations: {}
+
+serviceAccountAgent:
+  # Specifies whether a ServiceAccount should be created
+  create: false
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+  annotations: {}
+
+## Backup cronjob configuration
+## Ref: https://github.com/nuvo/kube-tasks
+backup:
+  # Backup must use RBAC
+  # So by enabling backup you are enabling RBAC specific for backup
+  enabled: false
+  # Used for label app.kubernetes.io/component
+  componentName: "backup"
+  # Schedule to run jobs. Must be in cron time format
+  # Ref: https://crontab.guru/
+  schedule: "0 2 * * *"
+  annotations:
+    # Example for authorization to AWS S3 using kube2iam
+    # Can also be done using environment variables
+    iam.amazonaws.com/role: "jenkins"
+  image:
+    repository: "nuvo/kube-tasks"
+    tag: "0.1.2"
+  # Additional arguments for kube-tasks
+  # Ref: https://github.com/nuvo/kube-tasks#simple-backup
+  extraArgs: []
+  # Add existingSecret for AWS credentials
+  existingSecret: {}
+  ## Example for using an existing secret
+   # jenkinsaws:
+  ## Use this key for AWS access key ID
+     # awsaccesskey: jenkins_aws_access_key
+  ## Use this key for AWS secret access key
+     # awssecretkey: jenkins_aws_secret_key
+  # Add additional environment variables
+  env:
+  # Example environment variable required for AWS credentials chain
+  - name: "AWS_REGION"
+    value: "us-east-1"
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 1
+    limits:
+      memory: 1Gi
+      cpu: 1
+  destination: "s3://nuvo-jenkins-data/backup"
+checkDeprecation: true
+

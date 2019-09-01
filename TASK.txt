@@ -1,0 +1,26 @@
+
+1. Install minikube and deploy:
+  1.1 Sonar
+  1.2 Jenkins
+  1.3 Petclinic application (https://github.com/maseyka/petclinic-be, https://github.com/maseyka/petclinic-fe)
+    1.3.1 Backend should have 3 replicas
+    1.3.2 Resources should be labeled with build number.
+    1.3.3 Frontend should be accessible from host machine on port 30010
+    1.3.4 Application should have dummy Service Account with Role and RoleBinding (or ClusterRole and ClusterRoleBinding).
+  1.4 Docker registry (unsecured)
+  1.5 CI/CD pipeline in Jenkins should have:
+    1.5.1 Application build.
+    1.5.2 Application deployment in cluster.
+    1.5.3 In case of successful deployment, tag resulting image as stable and push it in Docker registry.
+
+For inquisitive mind (non–mandatory):
+1. Add access to application via ingress.
+2. Provide and show horizontal scaling for backend in CI/CD with performance test step.
+3. Configure artifactory and push binary artifact there.
+
+Technical considerations:
+1. It would be easier to fork petclinic in your private repository, since you can then use Git webhook for Jenkins.
+2. Accessible within host does not require to be accessible via localhost:30010
+3. You will need to trigger build somehow, which means you will need to add changes in codebase. No need to do complex changes. Goal is a commit, not a change in codebase.
+4. Consider checking Minikube addons, since they can ease your task.
+5. You are not restricted in terms of tools. Feel free to use anything, you deem fit, as long as you can provide proper explanation and It does the thing.

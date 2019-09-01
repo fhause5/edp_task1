@@ -1,0 +1,48 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+ name: backend
+ labels:
+     app: backend
+     type: backend 
+spec:
+  template:
+    metadata:
+     name: backend
+     labels:
+        app: backend
+        type: backend
+    spec:
+      containers:
+      - name: backend
+        image: snap032/backend:25
+        ports:
+          - containerPort: 8080
+        envFrom:
+          - configMapRef:
+              name: postgres-config
+
+  replicas: 1
+  selector:
+     matchLabels:
+        type: backend
+  strategy:
+    type: Recreate
+
+---
+
+apiVersion: v1 
+kind: Service 
+metadata:
+    name: service-backend 
+spec:
+    type: NodePort
+    ports:
+     - targetPort: 8080
+       port: 8080
+       nodePort: 30016
+    selector:
+       app: backend
+       type: backend
+    sessionAffinity: None
+    type: NodePort

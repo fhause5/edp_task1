@@ -1,0 +1,44 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+ name: gerrit
+ labels:
+     app: gerrit
+     type: gerrit 
+spec:
+  template:
+    metadata:
+     name: gerrit
+     labels:
+        app: gerrit
+        type: gerrit
+    spec:
+      containers:
+      - name: gerrit
+        image: gerritcodereview/gerrit:2.15.14-ubuntu16
+  replicas: 1
+  selector:
+     matchLabels:
+        type: gerrit
+  strategy:
+    #recreateParams:
+      #timeoutSeconds: 600
+    type: Recreate
+
+---
+
+apiVersion: v1 
+kind: Service 
+metadata:
+    name: service-gerrit 
+spec:
+    type: NodePort
+    ports:
+     - targetPort: 8080
+       port: 8080
+       nodePort: 30012
+    selector:
+       app: gerrit
+       type: gerrit
+    sessionAffinity: None
+    type: NodePort
