@@ -35,7 +35,7 @@ watch kubectl get all -o wide
 ### Configure nfs
 ```
 
-sudo yum install nfs-utils -y
+sudo yum install nfs-utils git -y
 sudo mkdir -p  /srv/nfs/disk1
 sudo mkdir /srv/nfs/disk2
 sudo mkdir /srv/nfs/disk3
